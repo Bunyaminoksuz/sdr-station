@@ -1,0 +1,36 @@
+[Unit]
+Description=Autonomous METEOR Station — Web Panel
+Documentation=https://github.com/sdr-station
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/meteor-station
+ExecStart=/home/pi/meteor-station/venv/bin/uvicorn web.server:app --host 0.0.0.0 --port 8080 --workers 1 --limit-max-requests 1000
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# Pi 3B+ Memory Limits (prevent OOM)
+MemoryMax=150M
+MemoryHigh=100M
+Nice=15
+CPUQuota=30%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=meteor-web
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/pi/meteor-station
+
+[Install]
+WantedBy=multi-user.target

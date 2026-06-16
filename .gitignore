@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+.env
+
+# METEOR Station Runtime Files
+/logs/
+/passes/
+/run/
+/tle/
+passes.db
+passes.db-wal
+passes.db-shm
+state.json
+
+# Skyfield Ephemeris
+de421.bsp
+*.bsp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

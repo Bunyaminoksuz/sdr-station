@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+skyfield
+requests
+psutil
+python-multipart

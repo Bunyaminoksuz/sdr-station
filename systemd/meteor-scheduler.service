@@ -1,0 +1,38 @@
+[Unit]
+Description=Autonomous METEOR Station — Scheduler
+Documentation=https://github.com/sdr-station
+After=network-online.target time-sync.target
+Wants=network-online.target time-sync.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/meteor-station
+ExecStart=/home/pi/meteor-station/venv/bin/python /home/pi/meteor-station/scheduler.py
+Restart=always
+RestartSec=30
+WatchdogSec=7200
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# Pi 3B+ Memory Limits (prevent OOM)
+MemoryMax=200M
+MemoryHigh=150M
+Nice=10
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=meteor-scheduler
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/pi/meteor-station
+
+[Install]
+WantedBy=multi-user.target

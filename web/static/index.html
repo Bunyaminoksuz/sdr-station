@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METEOR Station — Dashboard</title>
+    <meta name="description" content="Autonomous METEOR-M satellite image reception station dashboard">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="header-left">
+            <span class="logo">🛰️</span>
+            <div>
+                <h1>METEOR Station</h1>
+                <span class="subtitle" id="connection-status">Bağlanıyor...</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="recording-badge" id="recording-badge" style="display:none">
+                <span class="rec-dot"></span> KAYIT YAPILIYOR
+            </div>
+            <button class="btn btn-icon" onclick="openSettings()" title="Ayarlar">⚙️</button>
+        </div>
+    </header>
+
+    <!-- Status Cards -->
+    <section class="status-grid">
+        <div class="card status-card">
+            <div class="card-icon">📡</div>
+            <div class="card-content">
+                <span class="card-label">Sonraki Geçiş</span>
+                <span class="card-value" id="next-pass-time">—</span>
+                <span class="card-sub" id="next-pass-sat">—</span>
+            </div>
+        </div>
+        <div class="card status-card">
+            <div class="card-icon">⏱️</div>
+            <div class="card-content">
+                <span class="card-label">Geri Sayım</span>
+                <span class="card-value countdown" id="countdown">—</span>
+            </div>
+        </div>
+        <div class="card status-card">
+            <div class="card-icon">🖼️</div>
+            <div class="card-content">
+                <span class="card-label">Toplam Görüntü</span>
+                <span class="card-value" id="image-count">0</span>
+            </div>
+        </div>
+        <div class="card status-card">
+            <div class="card-icon">💾</div>
+            <div class="card-content">
+                <span class="card-label">Disk</span>
+                <span class="card-value" id="disk-usage">—</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="disk-progress"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Bar -->
+    <section class="system-bar">
+        <div class="sys-item">
+            <span class="sys-label">CPU</span>
+            <span class="sys-value" id="cpu-percent">—</span>
+        </div>
+        <div class="sys-item">
+            <span class="sys-label">RAM</span>
+            <span class="sys-value" id="ram-percent">—</span>
+        </div>
+        <div class="sys-item">
+            <span class="sys-label">Sıcaklık</span>
+            <span class="sys-value" id="cpu-temp">—</span>
+        </div>
+        <div class="sys-item">
+            <span class="sys-label">Uptime</span>
+            <span class="sys-value" id="uptime">—</span>
+        </div>
+        <div class="sys-item">
+            <span class="sys-label">Güneş</span>
+            <span class="sys-value" id="sun-info">—</span>
+        </div>
+        <div class="sys-item sys-item-wide">
+            <span class="sys-label">Durum</span>
+            <span class="sys-value" id="station-status">—</span>
+        </div>
+    </section>
+
+    <!-- Last Decode Telemetry -->
+    <section class="last-decode-card" id="last-decode-section" style="display:none">
+        <div class="last-decode-header">
+            <span class="last-decode-icon">📡</span>
+            <h3>Son Başarılı Decode</h3>
+        </div>
+        <div class="last-decode-grid">
+            <div class="ld-item">
+                <span class="ld-label">Uydu</span>
+                <span class="ld-value" id="ld-satellite">—</span>
+            </div>
+            <div class="ld-item">
+                <span class="ld-label">Zaman</span>
+                <span class="ld-value" id="ld-time">—</span>
+            </div>
+            <div class="ld-item">
+                <span class="ld-label">Max Elev.</span>
+                <span class="ld-value" id="ld-elevation">—</span>
+            </div>
+            <div class="ld-item">
+                <span class="ld-label">Frekans</span>
+                <span class="ld-value" id="ld-frequency">—</span>
+            </div>
+            <div class="ld-item">
+                <span class="ld-label">Kanallar</span>
+                <span class="ld-value" id="ld-channels">—</span>
+            </div>
+            <div class="ld-item">
+                <span class="ld-label">NORAD</span>
+                <span class="ld-value" id="ld-norad">—</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Satellite Telemetry Panel -->
+    <section class="telemetry-panel" id="telemetry-panel" style="display:none">
+        <!-- Global Status Bar -->
+        <div class="tlm-header">
+            <div class="tlm-header-left">
+                <span class="tlm-icon">🛰️</span>
+                <div>
+                    <h3 id="tlm-sat-name">—</h3>
+                    <span class="tlm-subtitle">
+                        Mod: <span id="tlm-mode">—</span> &nbsp;|&nbsp;
+                        MSU-MR ID: <span id="tlm-msu-id">—</span>
+                    </span>
+                </div>
+            </div>
+            <div class="tlm-header-right">
+                <div class="tlm-led-box">
+                    <span class="led" id="tlm-led"></span>
+                    <span class="tlm-led-label" id="tlm-led-label">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thermal Management -->
+        <div class="tlm-section">
+            <h4>🌡️ Isıl Yönetim</h4>
+            <table class="tlm-table">
+                <thead>
+                    <tr>
+                        <th>Parametre</th>
+                        <th>Değer</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dedektör Kanal 6 <small>(Ana Göz)</small></td>
+                        <td id="tlm-det-ch6" class="mono">—</td>
+                        <td id="tlm-det-ch6-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>Dedektör Kanal 5 <small>(Isıl IR)</small></td>
+                        <td id="tlm-det-ch5" class="mono">—</td>
+                        <td id="tlm-det-ch5-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>Dedektör Kanal 3 <small>(Yakın IR)</small></td>
+                        <td id="tlm-det-ch3" class="mono">—</td>
+                        <td id="tlm-det-ch3-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>Gövde Sıcaklığı <small>(Baseplate)</small></td>
+                        <td id="tlm-baseplate" class="mono">—</td>
+                        <td>📋 Referans</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Calibration -->
+        <div class="tlm-section">
+            <h4>🎯 Kalibrasyon Referansları</h4>
+            <table class="tlm-table">
+                <thead>
+                    <tr>
+                        <th>Parametre</th>
+                        <th>Değer</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sıcak Referans 1 <small>(Hot Body)</small></td>
+                        <td id="tlm-hot1" class="mono">—</td>
+                        <td id="tlm-hot1-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>Sıcak Referans 2</td>
+                        <td id="tlm-hot2" class="mono">—</td>
+                        <td id="tlm-hot2-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>Soğuk Referans <small>(Cold Body)</small></td>
+                        <td id="tlm-cold" class="mono">—</td>
+                        <td id="tlm-cold-status">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Power & Optical -->
+        <div class="tlm-section">
+            <h4>⚡ Güç & Optik Kontrol</h4>
+            <table class="tlm-table">
+                <thead>
+                    <tr>
+                        <th>Parametre</th>
+                        <th>Değer</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>HV Kontrol <small>(VK1 / VK2)</small></td>
+                        <td id="tlm-hv" class="mono">—</td>
+                        <td id="tlm-hv-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>Lamba Akımları <small>(Ch1/2/3)</small></td>
+                        <td id="tlm-lamps" class="mono">—</td>
+                        <td id="tlm-lamps-status">—</td>
+                    </tr>
+                    <tr>
+                        <td>IR Lens Sıcaklığı</td>
+                        <td id="tlm-ir-lens" class="mono">—</td>
+                        <td>📋 Referans</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Upcoming Passes -->
+    <section class="section">
+        <div class="section-header">
+            <h2>📅 Yaklaşan Geçişler</h2>
+        </div>
+        <div class="table-container">
+            <table id="upcoming-table">
+                <thead>
+                    <tr>
+                        <th>Uydu</th>
+                        <th>AOS</th>
+                        <th>LOS</th>
+                        <th>Süre</th>
+                        <th>Max Elev.</th>
+                        <th>Frekans</th>
+                        <th>Öncelik</th>
+                    </tr>
+                </thead>
+                <tbody id="upcoming-body"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Gallery -->
+    <section class="section">
+        <div class="section-header">
+            <h2>🖼️ Geçiş Arşivi</h2>
+            <div class="gallery-controls">
+                <!-- Satellite Filter -->
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all" onclick="filterSatellite('all')">Tümü</button>
+                    <button class="filter-btn" data-filter="METEOR-M2-4"
+                        onclick="filterSatellite('METEOR-M2-4')">M2-4</button>
+                    <button class="filter-btn" data-filter="METEOR-M2-3"
+                        onclick="filterSatellite('METEOR-M2-3')">M2-3</button>
+                </div>
+                <!-- Bulk Download -->
+                <div class="download-group">
+                    <button class="btn btn-sm" onclick="downloadBulk('daily')" title="Bugünün geçişleri">📦
+                        Günlük</button>
+                    <button class="btn btn-sm" onclick="downloadBulk('weekly')" title="Bu haftanın geçişleri">📦
+                        Haftalık</button>
+                    <button class="btn btn-sm" onclick="downloadBulk('monthly')" title="Bu ayın geçişleri">📦
+                        Aylık</button>
+                </div>
+            </div>
+        </div>
+        <div id="gallery-container"></div>
+    </section>
+
+    <!-- Pass Detail Modal -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal detail-modal">
+            <div class="modal-header">
+                <h3 id="detail-title">Geçiş Detayı</h3>
+                <button class="btn btn-icon" onclick="closeDetail()">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Metadata -->
+                <div class="detail-section">
+                    <h4>📋 Metadata</h4>
+                    <table class="detail-table" id="detail-metadata"></table>
+                </div>
+                <!-- Decode Settings -->
+                <div class="detail-section">
+                    <h4>⚙️ Decode Ayarları</h4>
+                    <table class="detail-table" id="detail-decode"></table>
+                </div>
+                <!-- SNR Chart -->
+                <div class="detail-section" id="snr-chart-section" style="display:none">
+                    <h4>📊 SNR Grafiği (Zaman Serisi)</h4>
+                    <canvas id="snr-chart" width="660" height="160"></canvas>
+                    <div class="snr-chart-legend">
+                        <span id="snr-chart-info"></span>
+                    </div>
+                </div>
+                <!-- Files -->
+                <div class="detail-section">
+                    <h4>📁 Dosyalar</h4>
+                    <div id="detail-files"></div>
+                </div>
+                <!-- Images Preview -->
+                <div class="detail-section">
+                    <h4>🖼️ Görüntüler</h4>
+                    <div class="detail-images" id="detail-images"></div>
+                </div>
+                <!-- Decode Log -->
+                <div class="detail-section">
+                    <h4>📃 Decode Logu</h4>
+                    <pre class="decode-log" id="detail-log"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="detail-download-btn">📦 Tümünü İndir (ZIP)</button>
+                <button class="btn btn-danger" id="detail-delete-btn">🗑️ Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="">
+            <div class="lightbox-info">
+                <span id="lightbox-name"></span>
+                <a id="lightbox-download" href="#" download class="btn btn-sm">⬇️ İndir</a>
+            </div>
+        </div>
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h3>⚙️ Ayarlar</h3>
+                <button class="btn btn-icon" onclick="closeSettings()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4>📍 Gözlemci Konumu</h4>
+                    <div class="form-row">
+                        <label>Enlem</label>
+                        <input type="number" id="cfg-lat" step="0.0001">
+                    </div>
+                    <div class="form-row">
+                        <label>Boylam</label>
+                        <input type="number" id="cfg-lon" step="0.0001">
+                    </div>
+                    <div class="form-row">
+                        <label>Yükseklik (m)</label>
+                        <input type="number" id="cfg-alt" step="1">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h4>📡 SDR Ayarları</h4>
+                    <div class="form-row">
+                        <label>Min Elevasyon (°)</label>
+                        <input type="number" id="cfg-elev" min="0" max="90">
+                    </div>
+                    <div class="form-row">
+                        <label>Gain (dB)</label>
+                        <input type="number" id="cfg-gain" min="0" max="50">
+                    </div>
+                    <div class="form-row">
+                        <label>Bias Tee ⚠️</label>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <input type="checkbox" id="cfg-bias">
+                            <span id="bias-lock-warning" style="color:var(--danger);font-size:0.75rem;display:none">
+                                🔒 Güvenlik kilidi aktif — değiştirilemez
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h4>🛰️ Uydu Seçimi</h4>
+                    <div id="satellite-toggles"></div>
+                </div>
+                <div class="form-section">
+                    <h4>💾 Disk Yönetimi</h4>
+                    <div class="form-row">
+                        <label>Oto-silme (gün)</label>
+                        <input type="number" id="cfg-delete-days" min="1" max="365">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveSettings()">💾 Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
