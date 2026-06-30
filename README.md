@@ -7,7 +7,7 @@
     <a href="https://github.com/Bunyaminoksuz/sdr-station/network/members"><img src="https://img.shields.io/github/forks/Bunyaminoksuz/sdr-station?style=for-the-badge&color=blue" alt="Forks Badge"/></a>
     <img src="https://img.shields.io/badge/python-3.11-blue?style=for-the-badge" alt="Python Badge">
     <img src="https://img.shields.io/badge/platform-RaspberryPi-red?style=for-the-badge" alt="Raspberry Pi Badge">
-    <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License Badge">
+    <img src="https://img.shields.io/badge/license-AGPL--3.0-green?style=for-the-badge" alt="License Badge">
   </p>
 
   <p>
@@ -19,7 +19,10 @@
 ---
 
 ![Dashboard Screenshot](docs/dashboard.png)
-*(Note: Please upload your dashboard screenshot to `docs/dashboard.png`)*
+*Live Dashboard displaying satellite pass schedule, system health, and image gallery.*
+
+![Telemetry Screenshot](docs/telemetry.png)
+*Detailed thermal telemetry and composite imagery for a decoded METEOR-M pass.*
 
 ## 🚀 Features
 
